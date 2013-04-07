@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "LinqDynamic", "LinqDynamic.vbproj", "{3A027419-D8A2-438F-BCD9-68B510FD5F5C}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "LinqDynamic", "./LinqDynamic/LinqDynamic.vbproj", "{3A027419-D8A2-438F-BCD9-68B510FD5F5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
