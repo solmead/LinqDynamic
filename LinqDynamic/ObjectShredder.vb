@@ -31,7 +31,7 @@ Public Class ObjectShredder(Of T)
         End If
 
         ' now see if need to extend datatable base on the type T + build ordinal map
-        table = ExtendTable(table, GetType(T))
+        table = ExtendTableBaseClassFirst(table, GetType(T))
 
         table.BeginLoadData()
         Using e As IEnumerator(Of T) = source.GetEnumerator()
@@ -73,7 +73,11 @@ Public Class ObjectShredder(Of T)
         Return table
     End Function
 
-    Public Function ExtendTable(ByVal table As DataTable, ByVal type As Type) As DataTable
+    Public Function ExtendTableBaseClassFirst(ByVal table As DataTable, ByVal type As Type) As DataTable
+        If (type.BaseType IsNot Nothing) Then
+            table = ExtendTableBaseClassFirst(table, type.BaseType)
+        End If
+
         For Each f As FieldInfo In type.GetFields()
             If (Not _ordinalMap.ContainsKey(f.Name)) Then
                 Dim dc As DataColumn
@@ -93,15 +97,39 @@ Public Class ObjectShredder(Of T)
             End If
         Next
 
+
         Return table
     End Function
+
+    'Public Function ExtendTable(ByVal table As DataTable, ByVal type As Type) As DataTable
+    '    For Each f As FieldInfo In type.GetFields()
+    '        If (Not _ordinalMap.ContainsKey(f.Name)) Then
+    '            Dim dc As DataColumn
+    '            dc = If(table.Columns.Contains(f.Name), table.Columns(f.Name), table.Columns.Add(f.Name, f.FieldType))
+    '            _ordinalMap.Add(f.Name, dc.Ordinal)
+    '        End If
+    '    Next f
+
+    '    For Each p As PropertyInfo In type.GetProperties()
+    '        If Not _ordinalMap.ContainsKey(p.Name) Then
+    '            Dim colType As Type = p.PropertyType
+    '            If (colType.IsGenericType) AndAlso (colType.GetGenericTypeDefinition() Is GetType(Nullable(Of ))) Then
+    '                colType = colType.GetGenericArguments()(0)
+    '            End If
+    '            Dim dc As DataColumn = IIf(table.Columns.Contains(p.Name), table.Columns(p.Name), table.Columns.Add(p.Name, colType))
+    '            _ordinalMap.Add(p.Name, dc.Ordinal)
+    '        End If
+    '    Next
+
+    '    Return table
+    'End Function
 
     Public Function ShredObject(ByVal table As DataTable, ByVal instance As T) As Object()
         Dim fi As FieldInfo() = _fi
         Dim pi As PropertyInfo() = _pi
 
         If instance.GetType() IsNot GetType(T) Then
-            ExtendTable(table, instance.GetType())
+            ExtendTableBaseClassFirst(table, instance.GetType())
             fi = instance.GetType().GetFields()
             pi = instance.GetType().GetProperties()
         End If
