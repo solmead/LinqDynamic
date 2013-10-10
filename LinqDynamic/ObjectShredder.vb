@@ -12,6 +12,7 @@ Public Class ObjectShredder(Of T)
     Private _fi As FieldInfo()
     Private _pi As PropertyInfo()
     Private _ordinalMap As Dictionary(Of String, Integer)
+    Private _ordinalNameMap As Dictionary(Of String, String)
     Private _type As Type
 
     Public Sub New()
@@ -19,6 +20,7 @@ Public Class ObjectShredder(Of T)
         _fi = _type.GetFields()
         _pi = _type.GetProperties()
         _ordinalMap = New Dictionary(Of String, Integer)()
+        _ordinalNameMap = New Dictionary(Of String, String)()
     End Sub
 
     Public Function Shred(ByVal source As IEnumerable(Of T), ByVal table As DataTable, _
@@ -47,7 +49,7 @@ Public Class ObjectShredder(Of T)
         End Using
         table.EndLoadData()
         If (useDisplayNames) Then
-            RenameColumnsToDisplayName(table, GetType(T))
+            RenameColumnsToDisplayName(table)
         End If
         Return table
     End Function
@@ -79,28 +81,11 @@ Public Class ObjectShredder(Of T)
         Return table
     End Function
 
-    Public Function RenameColumnsToDisplayName(ByVal table As DataTable, ByVal type As Type) As DataTable
-        If (type.BaseType IsNot Nothing) Then
-            table = RenameColumnsToDisplayName(table, type.BaseType)
-        End If
+    Public Function RenameColumnsToDisplayName(ByVal table As DataTable) As DataTable
 
-        For Each f As FieldInfo In type.GetFields()
-            If (table.Columns.Contains(f.Name)) Then
-                Dim dc = table.Columns(f.Name)
-            End If
-        Next f
-
-        For Each p As PropertyInfo In type.GetProperties()
-            If (table.Columns.Contains(p.Name)) Then
-                Dim dc = table.Columns(p.Name)
-                Dim attr As DisplayNameAttribute = p.GetCustomAttributes(GetType(DisplayNameAttribute), True).SingleOrDefault()
-                If (attr IsNot Nothing) Then
-                    dc.ColumnName = attr.DisplayName
-                End If
-                Dim attr2 As DisplayAttribute = p.GetCustomAttributes(GetType(DisplayAttribute), True).SingleOrDefault()
-                If (attr2 IsNot Nothing) Then
-                    dc.ColumnName = attr2.Name
-                End If
+        For Each col In table.Columns
+            If _ordinalNameMap.containskey(col.ColumnName) Then
+                col.ColumnName = _ordinalNameMap(col.ColumnName)
             End If
         Next
 
@@ -116,6 +101,7 @@ Public Class ObjectShredder(Of T)
                 Dim dc As DataColumn
                 dc = If(table.Columns.Contains(f.Name), table.Columns(f.Name), table.Columns.Add(f.Name, f.FieldType))
                 _ordinalMap.Add(f.Name, dc.Ordinal)
+                _ordinalNameMap.Add(f.Name, f.Name)
             End If
         Next f
 
@@ -127,6 +113,16 @@ Public Class ObjectShredder(Of T)
                 End If
                 Dim dc As DataColumn = IIf(table.Columns.Contains(p.Name), table.Columns(p.Name), table.Columns.Add(p.Name, colType))
                 _ordinalMap.Add(p.Name, dc.Ordinal)
+                Dim name = p.Name
+                Dim attr As DisplayNameAttribute = p.GetCustomAttributes(GetType(DisplayNameAttribute), True).SingleOrDefault()
+                If (attr IsNot Nothing) Then
+                    name = attr.DisplayName
+                End If
+                Dim attr2 As DisplayAttribute = p.GetCustomAttributes(GetType(DisplayAttribute), True).SingleOrDefault()
+                If (attr2 IsNot Nothing) Then
+                    name = attr2.Name
+                End If
+                _ordinalNameMap.Add(p.Name, name)
             End If
         Next
 
