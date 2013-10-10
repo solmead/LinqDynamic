@@ -5,6 +5,8 @@ Imports System
 Imports System.Collections.Generic
 Imports System.Data
 Imports System.Reflection
+Imports System.ComponentModel
+Imports System.ComponentModel.DataAnnotations
 
 Public Class ObjectShredder(Of T)
     Private _fi As FieldInfo()
@@ -20,13 +22,13 @@ Public Class ObjectShredder(Of T)
     End Sub
 
     Public Function Shred(ByVal source As IEnumerable(Of T), ByVal table As DataTable, _
-      ByVal options As LoadOption?) As DataTable
+      ByVal options As LoadOption?, Optional useDisplayNames As Boolean = False) As DataTable
 
         If GetType(T).IsPrimitive Then
             table = ShredPrimitive(source, table, options)
         End If
 
-        If Table Is Nothing Then
+        If table Is Nothing Then
             table = New DataTable(GetType(T).Name)
         End If
 
@@ -44,8 +46,12 @@ Public Class ObjectShredder(Of T)
             End While
         End Using
         table.EndLoadData()
+        If (useDisplayNames) Then
+            RenameColumnsToDisplayName(table, GetType(T))
+        End If
         Return table
     End Function
+
 
     Public Function ShredPrimitive(ByVal source As IEnumerable(Of T), _
                                    ByVal table As DataTable, ByVal options As LoadOption?) As DataTable
@@ -73,6 +79,33 @@ Public Class ObjectShredder(Of T)
         Return table
     End Function
 
+    Public Function RenameColumnsToDisplayName(ByVal table As DataTable, ByVal type As Type) As DataTable
+        If (type.BaseType IsNot Nothing) Then
+            table = RenameColumnsToDisplayName(table, type.BaseType)
+        End If
+
+        For Each f As FieldInfo In type.GetFields()
+            If (table.Columns.Contains(f.Name)) Then
+                Dim dc = table.Columns(f.Name)
+            End If
+        Next f
+
+        For Each p As PropertyInfo In type.GetProperties()
+            If (table.Columns.Contains(p.Name)) Then
+                Dim dc = table.Columns(p.Name)
+                Dim attr As DisplayNameAttribute = p.GetCustomAttributes(GetType(DisplayNameAttribute), True).SingleOrDefault()
+                If (attr IsNot Nothing) Then
+                    dc.ColumnName = attr.DisplayName
+                End If
+                Dim attr2 As DisplayAttribute = p.GetCustomAttributes(GetType(DisplayAttribute), True).SingleOrDefault()
+                If (attr2 IsNot Nothing) Then
+                    dc.ColumnName = attr2.Name
+                End If
+            End If
+        Next
+
+        Return table
+    End Function
     Public Function ExtendTableBaseClassFirst(ByVal table As DataTable, ByVal type As Type) As DataTable
         If (type.BaseType IsNot Nothing) Then
             table = ExtendTableBaseClassFirst(table, type.BaseType)

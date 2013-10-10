@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
@@ -26,7 +27,7 @@ namespace WindowsFormsApplication1
                 list.Add(new AClass() {ID=a.ToString(),Name="Name" + a});
             }
 
-            var dt = list.ToDataTable();
+            var dt = list.ToDataTable(true);
             Debug.WriteLine(dt.Rows.Count);
         }
     }
@@ -39,6 +40,7 @@ namespace WindowsFormsApplication1
 
     public class AClass : BClass
     {
+        [Display(Name="A Class Name")]
         public string Name { get; set; }
     }
 }
