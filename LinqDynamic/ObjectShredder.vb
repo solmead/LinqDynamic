@@ -84,8 +84,12 @@ Public Class ObjectShredder(Of T)
     Public Function RenameColumnsToDisplayName(ByVal table As DataTable) As DataTable
 
         For Each col In table.Columns
-            If _ordinalNameMap.containskey(col.ColumnName) Then
-                col.ColumnName = _ordinalNameMap(col.ColumnName)
+            If _ordinalNameMap.ContainsKey(col.ColumnName) Then
+                Try
+                    col.ColumnName = _ordinalNameMap(col.ColumnName)
+                Catch ex As Exception
+
+                End Try
             End If
         Next
 
