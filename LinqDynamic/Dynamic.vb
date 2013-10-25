@@ -40,8 +40,8 @@ Namespace System.Linq.Dynamic
         ''' If the source sequence contains a sub-type of T, the table is automatically expanded for any addition public properties or fields.
         ''' </remarks>
         <Extension()> _
-        Public Function ToDataTable(Of T)(ByVal source As IEnumerable(Of T)) As DataTable
-            Return New ObjectShredder(Of T)().Shred(source, Nothing, Nothing)
+        Public Function ToDataTable(Of T)(ByVal source As IEnumerable(Of T), Optional useDisplayNames As Boolean = False) As DataTable
+            Return New ObjectShredder(Of T)().Shred(source, Nothing, Nothing, useDisplayNames)
         End Function
 
         ''' <summary>
