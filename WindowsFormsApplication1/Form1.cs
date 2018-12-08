@@ -36,11 +36,17 @@ namespace WindowsFormsApplication1
     public class BClass
     {
         public string ID { get; set; }
+        [Display(Name = "RefID",AutoGenerateField = false)]
+        public string RefID { get; set; }
     }
 
     public class AClass : BClass
     {
         [Display(Name="A Class Name")]
         public string Name { get; set; }
+        [Display(Name = "A Class Description")]
+        public string Description { get; set; }
+        [Display(Name = "RefID 2", AutoGenerateField = false)]
+        public string RefID2 { get; set; }
     }
 }
