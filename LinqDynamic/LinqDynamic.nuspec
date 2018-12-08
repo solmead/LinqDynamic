@@ -8,8 +8,20 @@
     <owners>$author$</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial release.</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>Linq</tags>
+    <releaseNotes>
+      The LinqDynamic library has been renamed to Utilities.LinqDynamic.
+      This package is empty, but will install the new package.
+    </releaseNotes>
+    <dependencies>
+      <group>
+        <dependency id="Utilities.LinqDynamic" version="2.0.1" />
+      </group>
+    </dependencies>
   </metadata>
+  <files>
+    <file src="linqdynamic/readme.txt" target=""/>
+    <file src="linqdynamic/license.txt" target=""/>
+  </files>
 </package>
